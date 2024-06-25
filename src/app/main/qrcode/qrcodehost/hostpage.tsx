@@ -1,28 +1,60 @@
 import QRCode from "qrcode.react";
 import { useEffect, useState } from "react";
-import Clock from "react-clock";
+import { AllBox, MiddleBox, ShotBox } from "./styled";
 
 interface QRData {
   qrname: string;
-  qrnumber: string;
+  qrtime: string;
   qrclient: string;
 }
 
-const hostpage: React.FC = () => {
-  const [value, setValue] = useState(new Date());
-
-  useEffect(() => {
-    const interval = setInterval(() => setValue(new Date()), 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+const HostPage: React.FC = () => {
+  const [timer, setTimer] = useState("00:00:00");
+  const [days, setDays] = useState("");
   const [qrdata, setQrdata] = useState<QRData>({
     qrname: "",
-    qrnumber: "",
-    qrclient: "http://localhost:3000/client",
+    qrtime: "",
+    qrclient: "http://localhost:3000/qrcode/client",
   });
+
+  const currentTimer = () => {
+    const date = new Date();
+    const month = String(date.getMonth() + 1);
+    const day = String(date.getDate());
+    const Week = String(date.getDay());
+    const fullYear = String(date.getFullYear());
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+
+    setTimer(`${hours}:${minutes}:${seconds}`);
+    setDays(`${fullYear}年${month}月${day}日`);
+  };
+
+  useEffect(() => {
+    const intervalId = setInterval(currentTimer, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const date = new Date();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    setTimer(`${hours}:${minutes}:00`);
+    setQrdata((prev) => ({
+      ...prev,
+      qrtime: timer,
+    }));
+  }, [days]);
+
+  useEffect(() => {
+    if (timer.endsWith("00")) {
+      setQrdata((prev) => ({
+        ...prev,
+        qrtime: timer,
+      }));
+    }
+  }, [timer]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,36 +65,35 @@ const hostpage: React.FC = () => {
   };
 
   const generateQrCodeValue = () => {
-    const { qrclient, qrname, qrnumber } = qrdata;
+    const { qrclient, qrname, qrtime } = qrdata;
     return `${qrclient}?qrname=${encodeURIComponent(
       qrname
-    )}&qrnumber=${encodeURIComponent(qrnumber)}`;
+    )}&qrtime=${encodeURIComponent(qrtime)}`;
   };
 
   return (
     <>
-      <QRCode value={generateQrCodeValue()} />
-      <Clock value={value} />
-      <br />
-      <div>
-        first value:
-        <input
-          name="qrname"
-          value={qrdata.qrname}
-          type="text"
-          onChange={handleInputChange}
-        />
+      <AllBox>
+        <MiddleBox>
+          <QRCode value={generateQrCodeValue()} />
+          <ShotBox>
+            <h1>{days}</h1>
+            <h1>{timer}</h1>
+          </ShotBox>
+        </MiddleBox>
         <br />
-        second value:
-        <input
-          name="qrnumber"
-          value={qrdata.qrnumber}
-          type="text"
-          onChange={handleInputChange}
-        />
-      </div>
+        <div>
+          first value:
+          <input
+            name="qrname"
+            value={qrdata.qrname}
+            type="text"
+            onChange={handleInputChange}
+          />
+        </div>
+      </AllBox>
     </>
   );
 };
 
-export default hostpage;
+export default HostPage;

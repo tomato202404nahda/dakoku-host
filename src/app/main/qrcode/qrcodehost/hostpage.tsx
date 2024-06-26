@@ -44,6 +44,7 @@ const HostPage: React.FC = () => {
     setQrdata((prev) => ({
       ...prev,
       qrtime: timer,
+      qrname: crypto.randomUUID(),
     }));
   }, [days]);
 
@@ -52,6 +53,7 @@ const HostPage: React.FC = () => {
       setQrdata((prev) => ({
         ...prev,
         qrtime: timer,
+        qrname: crypto.randomUUID(),
       }));
     }
   }, [timer]);
